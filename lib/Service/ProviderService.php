@@ -38,6 +38,15 @@ class ProviderService
         'disable_notify_admins',
     ];
     const DEFAULT_PROVIDERS = [
+        'google',
+        'amazon',
+        'facebook',
+        'twitter',
+        'GitHub',
+        'discord',
+        'QQ',
+        'slack',
+        'telegram',
     ];
 
     const TYPE_OPENID = 'openid';

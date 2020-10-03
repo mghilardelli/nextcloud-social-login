@@ -58,7 +58,7 @@ class CustomOAuth2 extends OAuth2
 	    $groups = [];
         $roles = $data->get($this->config->get('groups_claim'));
 
-        if ($data->get('kantonalverband_id') !== $this->config->get('kantonalverband_id')) {
+        if ($data->get('kantonalverband_id') != $this->config->get('kantonalverband_id')) {
             throw new AuthorizationDeniedException('Zugriff nicht erlaubt! Bei Problemen melde dich bei webmaster@pfadi.org');
         }
 

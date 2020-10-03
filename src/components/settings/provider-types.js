@@ -118,6 +118,21 @@ export default {
         type: 'text',
         required: false,
       },
+      jsonToken: {
+        title: 'MiData JSON Token',
+        type: 'text',
+        required: true,
+      },
+      groupsUrl: {
+        title: 'MiData JSON URL',
+        type: 'text',
+        required: true,
+      },
+      kantonalverbandId: {
+        title: 'Kantonalverband ID',
+        type: 'text',
+        required: true,
+      },
       profileFields: {
         title: 'Profile Fields (optional, comma-separated)',
         type: 'text',

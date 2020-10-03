@@ -123,6 +123,11 @@ export default {
         type: 'text',
         required: true,
       },
+      groupsUrl: {
+        title: 'MiData JSON URL',
+        type: 'text',
+        required: true,
+      },
       kantonalverbandId: {
         title: 'Kantonalverband ID',
         type: 'text',

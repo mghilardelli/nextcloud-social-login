@@ -98,6 +98,7 @@ class ProviderService
             'profile_fields' => 'profileFields',
             'groups_claim'  => 'groupsClaim',
             'json_token'  => 'jsonToken',
+            'groups_url'  => 'groupsUrl',
             'kantonalverband_id'  => 'kantonalverbandId',
             'group_mapping' => 'groupMapping',
             'logout_url'    => 'logoutUrl',

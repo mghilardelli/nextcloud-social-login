@@ -89,7 +89,7 @@ class CustomOAuth2 extends OAuth2
 
     private function getGroup($id)
     {
-        $url = 'https://pbs.puzzle.ch/de/groups/' . $id . '.json?token=' . $this->config->get('json_token');
+        $url = $this->config->get('groups_url') . '/' . $id . '.json?token=' . $this->config->get('json_token');
         $res = $this->httpClient->request($url);
 
         return (new Data\Parser())->parse($res)->groups[0];

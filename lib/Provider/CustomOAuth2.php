@@ -60,7 +60,9 @@ class CustomOAuth2 extends OAuth2
 
         if ($data->get('kantonalverband_id') != $this->config->get('kantonalverband_id')) {
             throw new AuthorizationDeniedException('Zugriff nicht erlaubt! Bei Problemen melde dich bei webmaster@pfadi.org');
-        }
+        } else {
+	    $groups[] = $data->get('kantonalverband_id');
+	}
 
         foreach ($roles as $role) {
             if (preg_match('/^(Biber|Wolf|Leitwolf|Pfadi|Leitpfadi|Pio)$/', $role->role_name)) {

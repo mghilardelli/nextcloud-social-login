@@ -6,6 +6,7 @@ $vendorDir = dirname(dirname(__FILE__));
 $baseDir = $vendorDir;
 
 return array(
+    'Composer\\InstalledVersions' => $vendorDir . '/composer/InstalledVersions.php',
     'Hybridauth\\Adapter\\AbstractAdapter' => $vendorDir . '/hybridauth/hybridauth/src/Adapter/AbstractAdapter.php',
     'Hybridauth\\Adapter\\AdapterInterface' => $vendorDir . '/hybridauth/hybridauth/src/Adapter/AdapterInterface.php',
     'Hybridauth\\Adapter\\DataStoreTrait' => $vendorDir . '/hybridauth/hybridauth/src/Adapter/DataStoreTrait.php',
@@ -92,7 +93,6 @@ return array(
     'Hybridauth\\Thirdparty\\OAuth\\OAuthSignatureMethod' => $vendorDir . '/hybridauth/hybridauth/src/Thirdparty/OAuth/OAuthSignatureMethod.php',
     'Hybridauth\\Thirdparty\\OAuth\\OAuthSignatureMethodHMACSHA1' => $vendorDir . '/hybridauth/hybridauth/src/Thirdparty/OAuth/OAuthSignatureMethodHMACSHA1.php',
     'Hybridauth\\Thirdparty\\OAuth\\OAuthUtil' => $vendorDir . '/hybridauth/hybridauth/src/Thirdparty/OAuth/OAuthUtil.php',
-    'Hybridauth\\Thirdparty\\OpenID\\ErrorException' => $vendorDir . '/hybridauth/hybridauth/src/Thirdparty/OpenID/LightOpenID.php',
     'Hybridauth\\Thirdparty\\OpenID\\LightOpenID' => $vendorDir . '/hybridauth/hybridauth/src/Thirdparty/OpenID/LightOpenID.php',
     'Hybridauth\\User\\Activity' => $vendorDir . '/hybridauth/hybridauth/src/User/Activity.php',
     'Hybridauth\\User\\Contact' => $vendorDir . '/hybridauth/hybridauth/src/User/Contact.php',

@@ -63,7 +63,7 @@
         </template>
       </div>
     </div>
-
+    <hr/><br/>
     <div class="provider-settings" v-for="(provider, name) in providers" :key="name">
       <h2 class="provider-title">
         <img :src="imagePath(name.toLowerCase())" /> {{ name[0].toUpperCase() + name.substring(1) }}
@@ -92,6 +92,13 @@
         <label>
           {{ t('Allow login only from specified domain') }}<br/>
           <input type="text" :name="'providers['+name+'][auth_params][hd]'" :value="provider.auth_params ? provider.auth_params.hd : ''"/>
+        </label>
+      </template>
+      <template v-if="name === 'GitHub'">
+        <br/>
+        <label>
+          {{ t('Allow login only for specified organizations') }}<br/>
+          <input type="text" :name="'providers['+name+'][orgs]'" :value="provider.orgs"/>
         </label>
       </template>
     </div>

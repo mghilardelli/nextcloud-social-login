@@ -35,6 +35,11 @@ Also nested claims is supported. For example `resource_access.client-id.roles` f
 }
 ```
 
+There is also support for setting the displayName:
+```
+{"roles": [{gid: 1, displayName: "admin"}, {gid: 2, displayName: "user"}]}
+```
+
 
 You can use provider groups in two ways:
 
@@ -43,7 +48,10 @@ You can use provider groups in two ways:
 
 If you want sync groups on every login do not forget to check "Update user profile every login" setting
 
-You can find example how to configure WSO2IS for return roles claim with OIDC at https://medium.com/@dewni.matheesha/claim-mapping-and-retrieving-end-user-information-in-wso2is-cffd5f3937ff
+## Examples for groups
+
+* You can find example how to configure WSO2IS for return roles claim with OIDC [here](https://medium.com/@dewni.matheesha/claim-mapping-and-retrieving-end-user-information-in-wso2is-cffd5f3937ff)
+* [GitLab OIDC allowing specific GitLab groups](https://github.com/zorn-v/nextcloud-social-login/blob/master/docs/sso/gitlab.md)
 
 ## Built-in OAuth providers
 
@@ -64,6 +72,30 @@ You can use comma separated list for multiple domains
 
 You can use `'social_login_auto_redirect' => true` setting in `config.php` for auto redirect unauthorized users to social login if only one provider is configured.
 If you want to temporary disable this function (e.g. for login as local admin), you can add `noredir=1` query parameter in url for login page. Something like `https://cloud.domain.com/login?noredir=1`
+
+To set timeout for http client, you can use
+```php
+  'social_login_http_client' => [
+    'timeout' => 45,
+  ],
+```
+in `config.php`
+
+### Configurate a provider via CLI
+
+You can configure everything from commandline by using the occ utility. To setup a oidc-provider replace the variables and URLs with values that match your deployment.
+```bash
+php occ config:app:set sociallogin custom_providers --value='{"custom_oidc": [{"name": "gitlab_oidc", "title": "Gitlab", "authorizeUrl": "https://gitlab.my-domain.org/oauth/authorize", "tokenUrl": "https://gitlab.my-domain.org/oauth/token", "userInfoUrl": "https://gitlab.my-domain.org/oauth/userinfo", "logoutUrl": "", "clientId": "$my_application_id", "clientSecret": "$my_super_secret_secret", "scope": "openid", "groupsClaim": "groups", "style": "gitlab", "defaultGroup": ""}]}'
+```
+to do this with docker you just need to add `docker exec -t -uwww-data CONTAINER_NAME` in front of the command, or run it interactively from `docker exec -it -uwww-data CONTAINER_NAME sh`
+
+To find out how to configure other providers, just configure them in the GUI and take a look at the database afterwards:
+```
+mysql -u nextcloud -p nextcloud
+Password: <yourpassword>
+
+> SELECT * FROM oc_appconfig WHERE appid='sociallogin';
+```
 
 ## Hint
 

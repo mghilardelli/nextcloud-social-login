@@ -5,6 +5,10 @@ namespace OCA\SocialLogin\AppInfo;
 use OCA\SocialLogin\Db\SocialConnectDAO;
 use OCA\SocialLogin\Service\ProviderService;
 use OCP\AppFramework\App;
+use OCP\AppFramework\Bootstrap\IBootContext;
+use OCP\AppFramework\Bootstrap\IBootstrap;
+use OCP\AppFramework\Bootstrap\IRegistrationContext;
+use OCP\EventDispatcher\IEventDispatcher;
 use OCP\IConfig;
 use OCP\IL10N;
 use OCP\IRequest;
@@ -13,9 +17,11 @@ use OCP\IURLGenerator;
 use OCP\IUser;
 use OCP\IUserManager;
 use OCP\IUserSession;
+use OCP\User\Events\BeforeUserDeletedEvent;
+use OCP\User\Events\UserLoggedOutEvent;
 use OCP\Util;
 
-class Application extends App
+class Application extends App implements IBootstrap
 {
     private $appName = 'sociallogin';
 
@@ -24,14 +30,20 @@ class Application extends App
         parent::__construct($this->appName);
     }
 
-    public function register()
+    public function register(IRegistrationContext $context): void
+    {
+        require __DIR__ . '/../../3rdparty/autoload.php';
+    }
+
+    public function boot(IBootContext $context): void
     {
         Util::addStyle($this->appName, 'styles');
-        $l = $this->query(IL10N::class);
 
+        $l = $this->query(IL10N::class);
         $config = $this->query(IConfig::class);
 
-        $this->query(IUserManager::class)->listen('\OC\User', 'preDelete', [$this, 'preDeleteUser']);
+        $dispatcher = $this->query(IEventDispatcher::class);
+        $dispatcher->addListener(BeforeUserDeletedEvent::class, [$this, 'preDeleteUser']);
 
         $userSession = $this->query(IUserSession::class);
         if ($userSession->isLoggedIn()) {
@@ -41,7 +53,7 @@ class Application extends App
                 $session->set('last-password-confirm', time());
             }
             if ($logoutUrl = $session->get('sociallogin_logout_url')) {
-                $userSession->listen('\OC\User', 'postLogout', function () use ($logoutUrl) {
+                $dispatcher->addListener(UserLoggedOutEvent::class, function () use ($logoutUrl) {
                     header('Location: ' . $logoutUrl);
                     exit();
                 });
@@ -93,10 +105,22 @@ class Application extends App
             header('Location: ' . $authUrl);
             exit();
         }
+
+        $hideDefaultLogin = $providersCount > 0
+            && !$request->getParam('showDefault')
+            && $config->getAppValue($this->appName, 'hide_default_login');
+        if ($hideDefaultLogin && $request->getPathInfo() === '/login') {
+            Util::addStyle($this->appName, 'hide_default_login');
+            \OC_App::registerLogin([
+                'href' => '#body-login',
+                'name' => $l->t('Log in with username or email'),
+            ]);
+        }
     }
 
-    public function preDeleteUser(IUser $user)
+    public function preDeleteUser(BeforeUserDeletedEvent $event)
     {
+        $user = $event->getUser();
         $this->query(SocialConnectDAO::class)->disconnectAll($user->getUID());
     }
 

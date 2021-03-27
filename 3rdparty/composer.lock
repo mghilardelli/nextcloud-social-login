@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "caa21cb5902442ba665e9959528d733f",
+    "content-hash": "6985048efcbefd76b212ef082db038ba",
     "packages": [
         {
             "name": "hybridauth/hybridauth",
@@ -56,6 +56,11 @@
                 "social",
                 "twitter"
             ],
+            "support": {
+                "gitter": "https://gitter.im/hybridauth/hybridauth",
+                "issues": "https://github.com/hybridauth/hybridauth/issues",
+                "source": "https://github.com/hybridauth/hybridauth/tree/master"
+            },
             "time": "2020-04-16T08:04:26+00:00"
         }
     ],
@@ -67,5 +72,5 @@
     "prefer-lowest": false,
     "platform": [],
     "platform-dev": [],
-    "plugin-api-version": "1.1.0"
+    "plugin-api-version": "2.0.0"
 }

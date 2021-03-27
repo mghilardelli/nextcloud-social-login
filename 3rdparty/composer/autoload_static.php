@@ -21,6 +21,7 @@ class ComposerStaticInit2fd16dd8fbb94748e1ada016e6921a0f
     );
 
     public static $classMap = array (
+        'Composer\\InstalledVersions' => __DIR__ . '/..' . '/composer/InstalledVersions.php',
         'Hybridauth\\Adapter\\AbstractAdapter' => __DIR__ . '/..' . '/hybridauth/hybridauth/src/Adapter/AbstractAdapter.php',
         'Hybridauth\\Adapter\\AdapterInterface' => __DIR__ . '/..' . '/hybridauth/hybridauth/src/Adapter/AdapterInterface.php',
         'Hybridauth\\Adapter\\DataStoreTrait' => __DIR__ . '/..' . '/hybridauth/hybridauth/src/Adapter/DataStoreTrait.php',
@@ -107,7 +108,6 @@ class ComposerStaticInit2fd16dd8fbb94748e1ada016e6921a0f
         'Hybridauth\\Thirdparty\\OAuth\\OAuthSignatureMethod' => __DIR__ . '/..' . '/hybridauth/hybridauth/src/Thirdparty/OAuth/OAuthSignatureMethod.php',
         'Hybridauth\\Thirdparty\\OAuth\\OAuthSignatureMethodHMACSHA1' => __DIR__ . '/..' . '/hybridauth/hybridauth/src/Thirdparty/OAuth/OAuthSignatureMethodHMACSHA1.php',
         'Hybridauth\\Thirdparty\\OAuth\\OAuthUtil' => __DIR__ . '/..' . '/hybridauth/hybridauth/src/Thirdparty/OAuth/OAuthUtil.php',
-        'Hybridauth\\Thirdparty\\OpenID\\ErrorException' => __DIR__ . '/..' . '/hybridauth/hybridauth/src/Thirdparty/OpenID/LightOpenID.php',
         'Hybridauth\\Thirdparty\\OpenID\\LightOpenID' => __DIR__ . '/..' . '/hybridauth/hybridauth/src/Thirdparty/OpenID/LightOpenID.php',
         'Hybridauth\\User\\Activity' => __DIR__ . '/..' . '/hybridauth/hybridauth/src/User/Activity.php',
         'Hybridauth\\User\\Contact' => __DIR__ . '/..' . '/hybridauth/hybridauth/src/User/Contact.php',

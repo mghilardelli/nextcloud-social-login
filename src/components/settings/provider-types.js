@@ -225,4 +225,89 @@ export default {
       },
     }
   },
+  midata: {
+    title: 'MiData OAuth2',
+    hasGroupMapping: true,
+    fields: {
+      name: {
+        title: 'Internal name',
+        type: 'text',
+        required: true,
+      },
+      title: {
+        title: 'Title',
+        type: 'text',
+        required: true,
+      },
+      apiBaseUrl: {
+        title: 'API Base URL',
+        type: 'url',
+        required: true,
+      },
+      authorizeUrl: {
+        title: 'Authorize url (can be relative to base URL)',
+        type: 'text',
+        required: true,
+      },
+      tokenUrl: {
+        title: 'Token url (can be relative to base URL)',
+        type: 'text',
+        required: true,
+      },
+      profileUrl: {
+        title: 'Profile url (can be relative to base URL)',
+        type: 'text',
+        required: true,
+      },
+      logoutUrl: {
+        title: 'Logout URL (optional)',
+        type: 'url',
+        required: false,
+      },
+      clientId: {
+        title: 'Client Id',
+        type: 'text',
+        required: true,
+      },
+      clientSecret: {
+        title: 'Client Secret',
+        type: 'password',
+        required: true,
+      },
+      scope: {
+        title: 'Scope (optional)',
+        type: 'text',
+        required: false,
+      },
+      jsonToken: {
+        title: 'MiData JSON Token',
+        type: 'text',
+        required: true,
+      },
+      groupsUrl: {
+        title: 'MiData JSON URL',
+        type: 'text',
+        required: true,
+      },
+      kantonalverbandId: {
+        title: 'Kantonalverband ID',
+        type: 'text',
+        required: true,
+      },
+      profileFields: {
+        title: 'Profile Fields (optional, comma-separated)',
+        type: 'text',
+        required: false,
+      },
+      displayNameClaim: {
+        title: 'Display name claim (optional)',
+        type: 'text',
+      },
+      groupsClaim: {
+        title: 'Groups claim (optional)',
+        type: 'text',
+        required: false,
+      },
+    }
+  },
 }

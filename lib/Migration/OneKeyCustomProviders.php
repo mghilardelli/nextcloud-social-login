@@ -28,7 +28,7 @@ class OneKeyCustomProviders implements IRepairStep
             return;
         }
         $customProviders = json_decode($this->config->getAppValue($this->appName, 'custom_providers'), true) ?: [];
-        $customProvidersNames = ['openid', 'custom_oidc', 'custom_oauth2'];
+        $customProvidersNames = ['openid', 'custom_oidc', 'custom_oauth2', 'midata'];
         foreach ($customProvidersNames as $providerName) {
             $configKey = $providerName.'_providers';
             $providers = json_decode($this->config->getAppValue($this->appName, $configKey), true);

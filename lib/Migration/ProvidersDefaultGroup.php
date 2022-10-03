@@ -34,6 +34,7 @@ class ProvidersDefaultGroup implements IRepairStep
         $this->setProvidersGroup('openid_providers', $defaultGroup);
         $this->setProvidersGroup('custom_oidc_providers', $defaultGroup);
         $this->setProvidersGroup('custom_oauth2_providers', $defaultGroup);
+        $this->setProvidersGroup('midata_providers', $defaultGroup);
 
         if ($defaultGroup) {
             $this->config->setAppValue($this->appName, 'tg_group', $defaultGroup);

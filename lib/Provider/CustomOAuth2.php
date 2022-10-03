@@ -12,7 +12,6 @@ use Hybridauth\User;
 
 class CustomOAuth2 extends OAuth2
 {
-
     public function __construct(
         $config = [],
         HttpClientInterface $httpClient = null,
@@ -32,46 +31,21 @@ class CustomOAuth2 extends OAuth2
      */
     public function getUserProfile()
     {
-        $profileFields = $this->strToArray($this->config->get('profile_fields'));
         $profileUrl = $this->config->get('endpoints')['profile_url'];
 
-        if (count($profileFields) > 0) {
-            $profileUrl .= (strpos($profileUrl, '?') !== false ? '&' : '?') . 'fields=' . implode(',', $profileFields);
-        }
-
-        $response = $this->apiRequest($profileUrl);
-        if (isset($response->ocs->data)) {
-            $response = $response->ocs->data;
-        }
-        if (!isset($response->identifier)) {
-            $response->identifier = $response->id
-                ?? $response->ID
-                ?? $response->data->id
-                ?? $response->user_id
-                ?? $response->userId
-                ?? $response->oauth_user_id
-                ?? null
-            ;
-        }
-        $displayNameClaim = $this->config->get('displayname_claim');
-        $response->displayName = $response->$displayNameClaim
-            ?? $response->displayName
-            ?? $response->username
-            ?? null
-        ;
-
-        $data = new Data\Collection($response);
-
-        if (!$data->exists('identifier')) {
-            throw new UnexpectedApiResponseException('Provider API returned an unexpected response.');
-        }
+        $profileHeaders = ['X-Scope' => $this->config->get('scope')];
+        $response = $this->apiRequest($profileUrl, 'GET', [], $profileHeaders);
 
         $userProfile = new User\Profile();
-        foreach ($data->toArray() as $key => $value) {
-            if ($key !== 'data' && property_exists($userProfile, $key)) {
-                $userProfile->$key = $value;
-            }
-        }
+
+        $userProfile->identifier = $response->id;
+        $userProfile->email = $response->email;
+        $userProfile->displayName = $response->first_name . ' ' . $response->last_name . ' / ' . $response->nickname;
+        $userProfile->firstName = $response->first_name;
+        $userProfile->lastName = $response->last_name;
+        $userProfile->language = $response->correspondence_language;
+
+        $data = new Data\Collection($response);
 
         if (null !== $groups = $this->getGroups($data)) {
             $userProfile->data['groups'] = $groups;
@@ -79,39 +53,55 @@ class CustomOAuth2 extends OAuth2
         if ($groupMapping = $this->config->get('group_mapping')) {
             $userProfile->data['group_mapping'] = $groupMapping;
         }
-
         return $userProfile;
     }
 
     protected function getGroups(Data\Collection $data)
     {
-        if ($groupsClaim = $this->config->get('groups_claim')) {
-            $nestedClaims = explode('.', $groupsClaim);
-            $claim = array_shift($nestedClaims);
-            $groups = $data->get($claim);
-            while (count($nestedClaims) > 0) {
-                $claim = array_shift($nestedClaims);
-                if (!isset($groups->{$claim})) {
-                    $groups = [];
-                    break;
-                }
-                $groups = $groups->{$claim};
-            }
-            if (is_array($groups)) {
-                return $groups;
-            } elseif (is_string($groups)) {
-                return $this->strToArray($groups);
-            }
-            return [];
+        $groups = [];
+        $roles = $data->get($this->config->get('groups_claim'));
+
+        if ($data->get('kantonalverband_id') != $this->config->get('kantonalverband_id')) {
+            throw new AuthorizationDeniedException('Zugriff nicht erlaubt! Bei Problemen melde dich bei webmaster@pfadi.org');
+        } else {
+            $groups[] = $data->get('kantonalverband_id');
         }
-        return null;
+
+        foreach ($roles as $role) {
+            if (preg_match('/^(Biber|Wolf|Leitwolf|Pfadi|Leitpfadi|Pio)$/', $role->role_name)) {
+                throw new AuthorizationDeniedException('Zugriff nicht erlaubt! Bei Problemen melde dich bei webmaster@pfadi.org');
+            } else {
+                $groupInfo = $this->getGroup($role->group_id);
+                if ($this->isPks($groupInfo)) {
+                    if ($role->role_name === 'Coach') {
+                        $groups[] = 'coach';
+                        // when in child of Abteilung set Abteilung id
+                    } else if (sizeof($groupInfo->links->hierarchies) > 3) {
+                        $linkedGroup = $this->getGroup($groupInfo->links->hierarchies[2]);
+                        if ($linkedGroup->group_type == 'Abteilung') {
+                            $groups[] = $linkedGroup->id;
+                        } else {
+                            $groups[] = $role->group_id;
+                        }
+                    } else {
+                        $groups[] = $role->group_id;
+                    }
+                }
+            }
+        }
+        return $groups;
     }
 
-    private function strToArray($str)
+    private function getGroup($id)
     {
-        return array_filter(
-            array_map('trim', explode(',', $str)),
-            function ($val) { return $val !== ''; }
-        );
+        $url = $this->config->get('groups_url') . '/' . $id . '.json?token=' . $this->config->get('json_token');
+        $res = $this->httpClient->request($url);
+
+        return (new Data\Parser())->parse($res)->groups[0];
+    }
+
+    private function isPks($group)
+    {
+        return in_array($this->config->get('kantonalverband_id'), $group->links->hierarchies);
     }
 }

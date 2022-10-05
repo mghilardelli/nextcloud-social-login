@@ -46,11 +46,12 @@ class CustomOAuth2 extends OAuth2
         $userProfile->language = $response->correspondence_language;
 
         $data = new Data\Collection($response);
-
-        if (null !== $groups = $this->getGroups($data)) {
+        $groups = $this->getGroups($data);
+        if (null !== $groups) {
             $userProfile->data['groups'] = $groups;
         }
-        if ($groupMapping = $this->config->get('group_mapping')) {
+        $groupMapping = $this->config->get('group_mapping');
+        if ($groupMapping) {
             $userProfile->data['group_mapping'] = $groupMapping;
         }
         return $userProfile;

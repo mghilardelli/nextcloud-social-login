@@ -12,6 +12,7 @@ use Hybridauth\User;
 
 class CustomOAuth2 extends OAuth2
 {
+
     public function __construct(
         $config = [],
         HttpClientInterface $httpClient = null,
@@ -54,6 +55,7 @@ class CustomOAuth2 extends OAuth2
         if ($groupMapping) {
             $userProfile->data['group_mapping'] = $groupMapping;
         }
+
         return $userProfile;
     }
 
@@ -73,7 +75,7 @@ class CustomOAuth2 extends OAuth2
                 throw new AuthorizationDeniedException('Zugriff nicht erlaubt! Bei Problemen melde dich bei webmaster@pfadi.org');
             } else {
                 $groupInfo = $this->getGroup($role->group_id);
-                if ($this->isPks($groupInfo)) {
+                if ($groupInfo && $this->isPks($groupInfo)) {
                     if ($role->role_name === 'Coach') {
                         $groups[] = 'coach';
                         // when in child of Abteilung set Abteilung id
@@ -98,7 +100,10 @@ class CustomOAuth2 extends OAuth2
         $url = $this->config->get('groups_url') . '/' . $id . '.json?token=' . $this->config->get('json_token');
         $res = $this->httpClient->request($url);
 
-        return (new Data\Parser())->parse($res)->groups[0];
+        if($res->getStatusCode() == 200) {
+            return (new Data\Parser())->parse($res)->groups[0];
+        }
+        return false;
     }
 
     private function isPks($group)

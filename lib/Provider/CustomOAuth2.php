@@ -99,8 +99,9 @@ class CustomOAuth2 extends OAuth2
     {
         $url = $this->config->get('groups_url') . '/' . $id . '.json?token=' . $this->config->get('json_token');
         $res = $this->httpClient->request($url);
+        $parsed = (new Data\Parser())->parse($res);
 
-        if($res->getStatusCode() == 200) {
+        if(array_key_exists('groups', $parsed)) {
             return (new Data\Parser())->parse($res)->groups[0];
         }
         return false;

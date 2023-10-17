@@ -10,7 +10,9 @@ $buttons: (
   (mailru, #168de2, 21px, true),
   (yandex, #fc3f1d, 21px, true),
   (BitBucket, #333333, 23px, true),
+  (PlexTv, #e5a00d, 25px, true),
 
+  (telegram, #54a9eb, 25px, false),
   (gitlab, #3f3177, 24px, false),
   (openid, #b3b3b3, 24px, false),
   (paypal, #253B80, 21px, false),
@@ -20,7 +22,7 @@ $buttons: (
   (keycloak, #030303, 25px, false),
 );
 
-#alternative-logins a.button {
+#alternative-logins a {
   &::before {
     content: "";
     background-repeat: no-repeat;
@@ -48,7 +50,10 @@ $buttons: (
     }
   }
 }
-
+/* Telegram */
+#alternative-logins iframe {
+  align-self: center;
+}
 
 /* Personal settings styles */
 .disconnect-logins {

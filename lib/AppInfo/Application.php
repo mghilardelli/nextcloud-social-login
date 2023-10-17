@@ -3,7 +3,6 @@
 namespace OCA\SocialLogin\AppInfo;
 
 use OCA\SocialLogin\AlternativeLogin\DefaultLoginShow;
-use OCA\SocialLogin\AlternativeLogin\SocialLogin;
 use OCA\SocialLogin\Db\ConnectedLoginMapper;
 use OCA\SocialLogin\Service\ProviderService;
 use OCP\AppFramework\App;
@@ -15,7 +14,6 @@ use OCP\IConfig;
 use OCP\IL10N;
 use OCP\IRequest;
 use OCP\ISession;
-use OCP\IURLGenerator;
 use OCP\IUserSession;
 use OCP\User\Events\BeforeUserDeletedEvent;
 use OCP\User\Events\UserLoggedOutEvent;
@@ -65,23 +63,16 @@ class Application extends App implements IBootstrap
         }
 
         $providerService = $this->query(ProviderService::class);
-        $urlGenerator = $this->query(IURLGenerator::class);
         $request = $this->query(IRequest::class);
-        $redirectUrl = $request->getParam('redirect_url');
 
         $providersCount = 0;
-        $authUrl = '';
+        $loginClass = '';
         $providers = json_decode($config->getAppValue($this->appName, 'oauth_providers'), true) ?: [];
         foreach ($providers as $name => $provider) {
             if ($provider['appid']) {
                 ++$providersCount;
-                if ($authUrl = $providerService->getAuthUrl($name, $provider['appid'])) {
-                    SocialLogin::addLogin(
-                        $l->t('Log in with %s', ucfirst($name)),
-                        $authUrl
-                    );
-                    $this->regContext->registerAlternativeLogin(SocialLogin::class);
-                }
+                $loginClass = $providerService->getLoginClass($name);
+                $this->regContext->registerAlternativeLogin($loginClass);
             }
         }
 
@@ -89,17 +80,8 @@ class Application extends App implements IBootstrap
         foreach ($providers as $providersType => $providerList) {
             foreach ($providerList as $provider) {
                 ++$providersCount;
-                $authUrl = $urlGenerator->linkToRoute($this->appName.'.login.custom', [
-                    'type' => $providersType,
-                    'provider' => $provider['name'],
-                    'login_redirect_url' => $redirectUrl
-                ]);
-                SocialLogin::addLogin(
-                    $l->t('Log in with %s', $provider['title']),
-                    $authUrl,
-                    $provider['style'] ?? ''
-                );
-                $this->regContext->registerAlternativeLogin(SocialLogin::class);
+                $loginClass = $providerService->getLoginClass($provider['name'], $provider, $providersType);
+                $this->regContext->registerAlternativeLogin($loginClass);
             }
         }
 
@@ -109,7 +91,9 @@ class Application extends App implements IBootstrap
                 && !$request->getParam('noredir')
                 && $config->getSystemValue('social_login_auto_redirect', false);
             if ($useLoginRedirect && $request->getPathInfo() === '/login') {
-                header('Location: ' . $authUrl);
+                $login = $this->query($loginClass);
+                $login->load();
+                header('Location: ' . $login->getLink());
                 exit();
             }
 

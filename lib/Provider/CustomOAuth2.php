@@ -101,7 +101,7 @@ class CustomOAuth2 extends OAuth2
         $res = $this->httpClient->request($url);
         $parsed = (new Data\Parser())->parse($res);
 
-        if(array_key_exists('groups', $parsed)) {
+        if(property_exists('groups', $parsed)) {
             return $parsed->groups[0];
         }
         return false;

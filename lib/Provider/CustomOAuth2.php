@@ -102,7 +102,7 @@ class CustomOAuth2 extends OAuth2
         $parsed = (new Data\Parser())->parse($res);
 
         if(array_key_exists('groups', $parsed)) {
-            return (new Data\Parser())->parse($res)->groups[0];
+            return $parsed->groups[0];
         }
         return false;
     }

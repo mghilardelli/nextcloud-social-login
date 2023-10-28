@@ -48,13 +48,15 @@ class MiDataOAuth2 extends OAuth2
         $userProfile->language = $response->correspondence_language;
 
         $data = new Data\Collection($response);
-
-        if (null !== $groups = $this->getGroups($data)) {
+        $groups = $this->getGroups($data);
+        if (null !== $groups) {
             $userProfile->data['groups'] = $groups;
         }
-        if ($groupMapping = $this->config->get('group_mapping')) {
+        $groupMapping = $this->config->get('group_mapping');
+        if ($groupMapping) {
             $userProfile->data['group_mapping'] = $groupMapping;
         }
+
         return $userProfile;
     }
 
@@ -74,7 +76,7 @@ class MiDataOAuth2 extends OAuth2
                 throw new AuthorizationDeniedException('Zugriff nicht erlaubt! Bei Problemen melde dich bei webmaster@pfadi.org');
             } else {
                 $groupInfo = $this->getGroup($role->group_id);
-                if ($this->isPks($groupInfo)) {
+                if ($groupInfo && $this->isPks($groupInfo)) {
                     if ($role->role_name === 'Coach') {
                         $groups[] = 'coach';
                         // when in child of Abteilung set Abteilung id
@@ -98,8 +100,12 @@ class MiDataOAuth2 extends OAuth2
     {
         $url = $this->config->get('groups_url') . '/' . $id . '.json?token=' . $this->config->get('json_token');
         $res = $this->httpClient->request($url);
+        $parsed = (new Data\Parser())->parse($res);
 
-        return (new Data\Parser())->parse($res)->groups[0];
+        if(property_exists($parsed,'groups')) {
+            return $parsed->groups[0];
+        }
+        return false;
     }
 
     private function isPks($group)

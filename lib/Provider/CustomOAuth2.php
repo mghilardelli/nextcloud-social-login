@@ -35,6 +35,9 @@ class CustomOAuth2 extends OAuth2
         $profileFields = $this->strToArray($this->config->get('profile_fields'));
         $profileUrl = $this->config->get('endpoints')['profile_url'];
 
+        $this->debug_to_console($profileFields);
+        $this->debug_to_console($profileUrl);
+
         if (count($profileFields) > 0) {
             $profileUrl .= (strpos($profileUrl, '?') !== false ? '&' : '?') . 'fields=' . implode(',', $profileFields);
         }
@@ -113,5 +116,14 @@ class CustomOAuth2 extends OAuth2
             array_map('trim', explode(',', $str)),
             function ($val) { return $val !== ''; }
         );
+    }
+
+
+    function debug_to_console($data) {
+        $output = $data;
+        if (is_array($output))
+            $output = implode(',', $output);
+
+        echo "<script>console.log('Debug Objects: " . $output . "' );</script>";
     }
 }

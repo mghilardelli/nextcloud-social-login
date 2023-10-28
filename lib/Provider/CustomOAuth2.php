@@ -88,7 +88,7 @@ class CustomOAuth2 extends OAuth2
         if ($groupsClaim = $this->config->get('groups_claim')) {
             $nestedClaims = explode('.', $groupsClaim);
             $claim = array_shift($nestedClaims);
-            print_r($data);
+            throw new UnexpectedApiResponseException(print_r($data,true));
             $groups = $data->get($claim);
             while (count($nestedClaims) > 0) {
                 $claim = array_shift($nestedClaims);

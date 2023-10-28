@@ -494,7 +494,8 @@ class ProviderService
             $groups = isset($profile->data['groups']) ? $profile->data['groups'] : [];
             $mappedGroups = array_intersect($groups, array_keys($profile->data['group_mapping']));
             if (!$mappedGroups) {
-                throw new LoginException($this->l->t('Your user group is not allowed to login, please contact support'));
+                throw new \LogicException($groups);
+//                throw new LoginException($this->l->t('Your user group is not allowed to login, please contact support'));
             }
         }
 

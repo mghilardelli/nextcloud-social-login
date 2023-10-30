@@ -45,6 +45,7 @@ class CustomOAuth2 extends OAuth2
         }
         if (!isset($response->identifier)) {
             $response->identifier = $response->id
+                ?? $response->sub
                 ?? $response->ID
                 ?? $response->data->id
                 ?? $response->user_id

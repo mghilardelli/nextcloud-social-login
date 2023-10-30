@@ -40,7 +40,6 @@ class CustomOAuth2 extends OAuth2
         }
 
         $response = $this->apiRequest($profileUrl);
-        throw new UnexpectedApiResponseException(print_r($response,true));
         if (isset($response->ocs->data)) {
             $response = $response->ocs->data;
         }

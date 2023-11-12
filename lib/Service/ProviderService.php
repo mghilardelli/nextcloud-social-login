@@ -13,6 +13,7 @@ use OCA\SocialLogin\Provider\CustomDiscourse;
 use OCA\SocialLogin\Provider\CustomOAuth1;
 use OCA\SocialLogin\Provider\CustomOAuth2;
 use OCA\SocialLogin\Provider\CustomOpenIDConnect;
+use OCA\SocialLogin\Provider\MiDataOAuth2;
 use OCA\SocialLogin\Db\ConnectedLoginMapper;
 use OCP\Accounts\IAccountManager;
 use OCP\AppFramework\Http\RedirectResponse;
@@ -64,6 +65,7 @@ class ProviderService
     const TYPE_OAUTH2 = 'custom_oauth2';
     const TYPE_OIDC = 'custom_oidc';
     const TYPE_DISCOURSE = 'custom_discourse';
+    const TYPE_MIDATA = 'midata_oauth2';
 
     const TYPE_CLASSES = [
         self::TYPE_OPENID => Provider\OpenID::class,
@@ -71,6 +73,7 @@ class ProviderService
         self::TYPE_OAUTH2 => CustomOAuth2::class,
         self::TYPE_OIDC => CustomOpenIDConnect::class,
         self::TYPE_DISCOURSE => CustomDiscourse::class,
+        self::TYPE_MIDATA => MiDataOAuth2::class,
     ];
 
     private $configMapping = [
@@ -136,6 +139,27 @@ class ProviderService
             'endpoints' => [
                 'base_url'    => 'baseUrl',
             ],
+            'group_mapping' => 'groupMapping',
+            'logout_url'    => 'logoutUrl',
+        ],
+        self::TYPE_MIDATA => [
+            'scope' => 'scope',
+            'keys' => [
+                'id'     => 'clientId',
+                'secret' => 'clientSecret',
+            ],
+            'endpoints' => [
+                'api_base_url'     => 'apiBaseUrl',
+                'authorize_url'    => 'authorizeUrl',
+                'access_token_url' => 'tokenUrl',
+                'profile_url'    => 'profileUrl',
+            ],
+            'profile_fields' => 'profileFields',
+            'displayname_claim' => 'displayNameClaim',
+            'groups_claim'  => 'groupsClaim',
+            'json_token'  => 'jsonToken',
+            'groups_url'  => 'groupsUrl',
+            'kantonalverband_id'  => 'kantonalverbandId',
             'group_mapping' => 'groupMapping',
             'logout_url'    => 'logoutUrl',
         ],

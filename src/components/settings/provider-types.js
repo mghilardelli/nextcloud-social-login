@@ -227,4 +227,89 @@ export default {
       },
     }
   },
+  midata_oauth2: {
+    title: t(appName, 'MiData OAuth2'),
+    hasGroupMapping: true,
+    fields: {
+      name: {
+        title: t(appName, 'Internal name'),
+        type: 'text',
+        required: true,
+      },
+      title: {
+        title: t(appName, 'Title'),
+        type: 'text',
+        required: true,
+      },
+      apiBaseUrl: {
+        title: t(appName, 'API Base URL'),
+        type: 'url',
+        required: true,
+      },
+      authorizeUrl: {
+        title: t(appName, 'Authorize url (can be relative to base URL)'),
+        type: 'text',
+        required: true,
+      },
+      tokenUrl: {
+        title: t(appName, 'Token url (can be relative to base URL)'),
+        type: 'text',
+        required: true,
+      },
+      profileUrl: {
+        title: t(appName, 'Profile url (can be relative to base URL)'),
+        type: 'text',
+        required: true,
+      },
+      logoutUrl: {
+        title: t(appName, 'Logout URL (optional)'),
+        type: 'url',
+        required: false,
+      },
+      clientId: {
+        title: t(appName, 'Client Id'),
+        type: 'text',
+        required: true,
+      },
+      clientSecret: {
+        title: t(appName, 'Client Secret'),
+        type: 'password',
+        required: true,
+      },
+      scope: {
+        title: t(appName, 'Scope (optional)'),
+        type: 'text',
+        required: false,
+      },
+      jsonToken: {
+        title: 'MiData JSON Token',
+        type: 'text',
+        required: true,
+      },
+      groupsUrl: {
+        title: 'MiData JSON URL',
+        type: 'text',
+        required: true,
+      },
+      kantonalverbandId: {
+        title: 'Kantonalverband ID',
+        type: 'text',
+        required: true,
+      },
+      profileFields: {
+        title: t(appName, 'Profile Fields (optional, comma-separated)'),
+        type: 'text',
+        required: false,
+      },
+      displayNameClaim: {
+        title: t(appName, 'Display name claim (optional)'),
+        type: 'text',
+      },
+      groupsClaim: {
+        title: t(appName, 'Groups claim (optional)'),
+        type: 'text',
+        required: false,
+      },
+    }
+  },
 }

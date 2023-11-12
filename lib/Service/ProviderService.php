@@ -7,6 +7,8 @@ use Hybridauth\User\Profile;
 use Hybridauth\HttpClient\Curl;
 use OC\Authentication\Token\IProvider;
 use OC\User\LoginException;
+use OCA\SocialLogin\AlternativeLogin;
+use OCA\SocialLogin\AlternativeLogin\SocialLogin;
 use OCA\SocialLogin\Provider\CustomDiscourse;
 use OCA\SocialLogin\Provider\CustomOAuth1;
 use OCA\SocialLogin\Provider\CustomOAuth2;
@@ -14,7 +16,6 @@ use OCA\SocialLogin\Provider\CustomOpenIDConnect;
 use OCA\SocialLogin\Db\ConnectedLoginMapper;
 use OCP\Accounts\IAccountManager;
 use OCP\AppFramework\Http\RedirectResponse;
-use OCP\EventDispatcher\IEventDispatcher;
 use OCP\IAvatarManager;
 use OCP\IConfig;
 use OCP\IGroupManager;
@@ -25,8 +26,6 @@ use OCP\IURLGenerator;
 use OCP\IUserSession;
 use OCP\IUserManager;
 use OCP\Mail\IMailer;
-use OCP\Security\CSP\AddContentSecurityPolicyEvent;
-use OCP\Util;
 
 class ProviderService
 {
@@ -42,6 +41,7 @@ class ProviderService
         'restrict_users_wo_assigned_groups',
         'disable_notify_admins',
         'hide_default_login',
+        'button_text_wo_prefix',
     ];
     const DEFAULT_PROVIDERS = [
         'google',
@@ -56,6 +56,7 @@ class ProviderService
         'mailru',
         'yandex',
         'BitBucket',
+        'PlexTv',
     ];
 
     const TYPE_OPENID = 'openid';
@@ -171,8 +172,6 @@ class ProviderService
     private $socialConnect;
     /** @var IAccountManager */
     private $accountManager;
-    /** @var IEventDispatcher */
-    private $dispatcher;
     /** @var IProvider */
     private $tokenProvider;
 
@@ -192,7 +191,6 @@ class ProviderService
         IMailer $mailer,
         ConnectedLoginMapper $socialConnect,
         IAccountManager $accountManager,
-        IEventDispatcher $dispatcher,
         IProvider $tokenProvider
     ) {
         $this->appName = $appName;
@@ -209,43 +207,35 @@ class ProviderService
         $this->mailer = $mailer;
         $this->socialConnect = $socialConnect;
         $this->accountManager = $accountManager;
-        $this->dispatcher = $dispatcher;
         $this->tokenProvider = $tokenProvider;
     }
 
-    public function getAuthUrl($name, $appId)
+    public function getLoginClass($name, $provider = [], $type = null)
     {
         $redirectUrl = $this->request->getParam('redirect_url');
-        $authUrl = $this->urlGenerator->linkToRouteAbsolute($this->appName.'.login.oauth', [
+        $routeName =  $this->appName.'.login.'.($type ? 'custom' : 'oauth');
+        $authUrl = $this->urlGenerator->linkToRouteAbsolute($routeName, [
+            'type' => $type,
             'provider' => $name,
             'login_redirect_url' => $redirectUrl
         ]);
-        switch ($name) {
-            case 'telegram':
-                $this->dispatcher->addListener(AddContentSecurityPolicyEvent::class, function ($event) {
-                    $csp = new \OCP\AppFramework\Http\ContentSecurityPolicy();
-                    $csp->addAllowedScriptDomain('telegram.org')
-                        ->addAllowedFrameDomain('oauth.telegram.org')
-                    ;
-                    $event->addPolicy($csp);
-                });
-                Util::addHeader('meta', [
-                    'id' => 'tg-data',
-                    'data-login' => $appId,
-                    'data-redirect-url' => $authUrl,
-                ]);
-                Util::addScript($this->appName, 'telegram');
-                return false;
+        $className = sprintf('%s\%sLogin', AlternativeLogin::class, ucfirst($name));
+        $class = class_exists($className) ? $className : SocialLogin::class;
+        if (method_exists($class, 'addLogin')) {
+            $title = $provider['title'] ?? ucfirst($name);
+            $label = $this->config->getAppValue($this->appName, 'button_text_wo_prefix')
+                ? $title
+                : $this->l->t('Log in with %s', $title);
+            $class::addLogin($label, $authUrl, $provider['style'] ?? '');
         }
-
-        return $authUrl;
+        return $class;
     }
 
     public function handleDefault($provider)
     {
         $config = [];
         $scopes = [
-            'discord' => 'identify email guilds',
+            'discord' => 'identify email guilds guilds.members.read',
         ];
         $providers = json_decode($this->config->getAppValue($this->appName, 'oauth_providers'), true) ?: [];
         if (is_array($providers) && in_array($provider, array_keys($providers))) {
@@ -255,10 +245,13 @@ class ProviderService
                     $config = array_merge([
                         'callback' => $callbackUrl,
                         'default_group' => $prov['defaultGroup'],
-                        'orgs' => $prov['orgs'] ?? null,
-                        'workspace' => $prov['workspace'] ?? null,
-                        'guilds' => $prov['guilds'] ?? null,
                     ], $this->applyConfigMapping('default', $prov));
+                    $opts = ['orgs', 'workspace', 'guilds', 'groupMapping'];
+                    foreach ($opts as $opt) {
+                        if (isset($prov[$opt])) {
+                            $config[$opt] = $prov[$opt];
+                        }
+                    }
 
                     if (isset($scopes[$name])) {
                         $config['scope'] = $scopes[$name];
@@ -426,6 +419,25 @@ class ProviderService
                 throw new LoginException($this->l->t('Login is available only to members of the following Discord guilds: %s', $config['guilds']));
             };
             $checkGuilds();
+
+            if ($allowedGuilds && !empty($config['groupMapping'])) {
+                // read Discord roles into NextCloud groups
+                $profile->data['groups'] = [];
+                $profile->data['group_mapping'] = $config['groupMapping'];
+                foreach($userGuilds as $guild) {
+                    if (empty($guild->id) || !in_array($guild->id, $allowedGuilds)) {
+                        // Only read groups from the explicitly declared guilds.
+                        // It doesn't make sense to try to map in random, unknown groups from arbitrary guilds.
+                        // and without this, a user in many guilds will trip a HTTP 429 rate limit from the Discord API.
+                        continue;
+                    }
+                    # https://discord.com/developers/docs/resources/guild#get-guild-member
+                    $guildMember = $adapter->apiRequest('users/@me/guilds/' . $guild->id . '/member' );
+                    $profile->data['groups'] = array_merge($profile->data['groups'], $guildMember->roles ?? []);
+                    // TODO: /member returns roles as their ID; to get their name requires an extra API call
+                    //       (and perhaps extra permissions?)
+                }
+            }
         }
 
         if (!empty($config['logout_url'])) {
@@ -520,7 +532,7 @@ class ProviderService
 
             if (isset($profile->data['groups']) && is_array($profile->data['groups'])) {
                 $groups = $profile->data['groups'];
-                $groupMapping = isset($profile->data['group_mapping']) ? $profile->data['group_mapping'] : null;
+                $groupMapping = $profile->data['group_mapping'] ?? null;
                 $userGroups = $this->groupManager->getUserGroups($user);
                 $autoCreateGroups = $this->config->getAppValue($this->appName, 'auto_create_groups');
                 $syncGroups = [];
@@ -565,9 +577,21 @@ class ProviderService
 
             }
 
+            $updateAccount = false;
+            $account = $this->accountManager->getAccount($user);
             if (isset($profile->address)) {
-                $account = $this->accountManager->getAccount($user);
+                $updateAccount = true;
                 $account->setProperty(IAccountManager::PROPERTY_ADDRESS, $profile->address, IAccountManager::SCOPE_PRIVATE, IAccountManager::NOT_VERIFIED);
+            }
+            if (isset($profile->phone)) {
+                $updateAccount = true;
+                $account->setProperty(IAccountManager::PROPERTY_PHONE, $profile->phone, IAccountManager::SCOPE_PRIVATE, IAccountManager::NOT_VERIFIED);
+            }
+            if (isset($profile->webSiteURL)) {
+                $updateAccount = true;
+                $account->setProperty(IAccountManager::PROPERTY_WEBSITE, $profile->webSiteURL, IAccountManager::SCOPE_PRIVATE, IAccountManager::NOT_VERIFIED);
+            }
+            if ($updateAccount) {
                 $this->accountManager->updateAccount($account);
             }
 
@@ -588,6 +612,8 @@ class ProviderService
             'password' => $userPassword,
             'token' => $userPassword ? null : $token,
         ], false);
+
+        $user->updateLastLoginTimestamp();
 
         //Workaround to create user files folder. Remove it later.
         \OC::$server->get(\OCP\Files\IRootFolder::class)->getUserFolder($user->getUID());

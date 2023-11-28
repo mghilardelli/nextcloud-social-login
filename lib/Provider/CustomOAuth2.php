@@ -4,6 +4,7 @@ namespace OCA\SocialLogin\Provider;
 
 use Hybridauth\Adapter\OAuth2;
 use Hybridauth\Data;
+use Hybridauth\Exception\AuthorizationDeniedException;
 use Hybridauth\Exception\UnexpectedApiResponseException;
 use Hybridauth\HttpClient\HttpClientInterface;
 use Hybridauth\Logger\LoggerInterface;

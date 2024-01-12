@@ -45,7 +45,7 @@ class CustomOAuth2 extends OAuth2
         $userProfile->displayName = $response->first_name . ' ' . $response->last_name . ' / ' . $response->nickname;
         $userProfile->firstName = $response->first_name;
         $userProfile->lastName = $response->last_name;
-        $userProfile->language = $response->correspondence_language;
+        $userProfile->language = $response->language;
 
         $data = new Data\Collection($response);
         $groups = $this->getGroups($data);

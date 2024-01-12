@@ -136,17 +136,17 @@ export default {
         required: false,
       },
       jsonToken: {
-        title: t(appName,'MiData JSON Token'),
+        title: 'MiData JSON Token',
         type: 'text',
         required: true,
       },
       groupsUrl: {
-        title: t(appName,'MiData JSON URL'),
+        title: 'MiData JSON URL',
         type: 'text',
         required: true,
       },
       kantonalverbandId: {
-        title: t(appName,'Kantonalverband ID'),
+        title: 'Kantonalverband ID',
         type: 'text',
         required: true,
       },

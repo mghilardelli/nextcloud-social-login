@@ -10,6 +10,7 @@ use Hybridauth\HttpClient\HttpClientInterface;
 use Hybridauth\Logger\LoggerInterface;
 use Hybridauth\Storage\StorageInterface;
 use Hybridauth\User;
+use function OCP\Log\logger;
 
 class CustomOAuth2 extends OAuth2
 {
@@ -87,7 +88,7 @@ class CustomOAuth2 extends OAuth2
         }
         $groups[] = $this->config->get('kantonalverband_id');
         // testing
-        $this->logger->debug('Login groups: ', $groups);
+        logger('sociallogin')->warning('Login group: ');
         return $groups;
     }
 

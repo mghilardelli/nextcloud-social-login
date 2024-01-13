@@ -95,7 +95,10 @@ class CustomOAuth2 extends OAuth2
     {
         $url = $this->config->get('groups_url') . '/' . $id . '.json?token=' . $this->config->get('json_token');
         $res = $this->httpClient->request($url);
-        return (new Data\Parser())->parse($res)->groups[0];
+        $groups = (new Data\Parser())->parse($res);
+        if(property_exists($groups, 'groups') && is_array($groups->groups) && !empty($groups->groups)) {
+            return $groups->groups[0];
+        }
     }
 
     private function isPks($group): bool

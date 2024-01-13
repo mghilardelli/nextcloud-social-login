@@ -88,7 +88,7 @@ class CustomOAuth2 extends OAuth2
         }
         $groups[] = $this->config->get('kantonalverband_id');
         // testing
-        logger('sociallogin')->warning('Login user: ' . $data->get('email') . ' groups: '. json_encode($groups));
+        logger('sociallogin')->warning('Login user: ' . $data->get('id') . '; groups: '. json_encode($groups));
         return $groups;
     }
 

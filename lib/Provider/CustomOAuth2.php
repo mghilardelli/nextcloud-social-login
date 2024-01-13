@@ -65,34 +65,29 @@ class CustomOAuth2 extends OAuth2
         $groups = [];
         $roles = $data->get($this->config->get('groups_claim'));
 
-        if ($data->get('kantonalverband_id') != $this->config->get('kantonalverband_id')) {
-            throw new AuthorizationDeniedException('Zugriff nicht erlaubt! Bei Problemen melde dich bei webmaster@pfadi.org');
-        } else {
-            $groups[] = $data->get('kantonalverband_id');
-        }
-
         foreach ($roles as $role) {
-            if (preg_match('/^(Biber|Wolf|Leitwolf|Pfadi|Leitpfadi|Pio)$/', $role->role_name)) {
-                throw new AuthorizationDeniedException('Zugriff nicht erlaubt! Bei Problemen melde dich bei webmaster@pfadi.org');
-            } else {
+            if (!preg_match('/^(Biber|Wolf|Leitwolf|Pfadi|Leitpfadi|Pio)$/', $role->role_name)) {
                 $groupInfo = $this->getGroup($role->group_id);
                 if ($groupInfo && $this->isPks($groupInfo)) {
                     if ($role->role_name === 'Coach') {
                         $groups[] = 'coach';
-                        // when in child of Abteilung set Abteilung id
-                    } else if (sizeof($groupInfo->links->hierarchies) > 3) {
-                        $linkedGroup = $this->getGroup($groupInfo->links->hierarchies[2]);
-                        if ($linkedGroup->group_type == 'Abteilung') {
-                            $groups[] = $linkedGroup->id;
-                        } else {
-                            $groups[] = $role->group_id;
-                        }
+                    // group on layer PKS
+                    } elseif ($groupInfo->links->layer_group == $this->config->get('kantonalverband_id')) {
+                        $groups[] = $groupInfo->id;
+                    // layer absteilung
                     } else {
-                        $groups[] = $role->group_id;
+                        $groups[] = $groupInfo->links->layer_group;
                     }
                 }
             }
         }
+
+        if (empty($groups)) {
+            throw new AuthorizationDeniedException('Zugriff nicht erlaubt! Bei Problemen melde dich bei webmaster@pfadi.org');
+        }
+        $groups[] = $this->config->get('kantonalverband_id');
+        // testing
+        $this->logger->debug('Login groups: ', $groups);
         return $groups;
     }
 
@@ -100,15 +95,10 @@ class CustomOAuth2 extends OAuth2
     {
         $url = $this->config->get('groups_url') . '/' . $id . '.json?token=' . $this->config->get('json_token');
         $res = $this->httpClient->request($url);
-        $parsed = (new Data\Parser())->parse($res);
-
-        if(property_exists($parsed,'groups')) {
-            return $parsed->groups[0];
-        }
-        return false;
+        return (new Data\Parser())->parse($res)->groups[0];
     }
 
-    private function isPks($group)
+    private function isPks($group): bool
     {
         return in_array($this->config->get('kantonalverband_id'), $group->links->hierarchies);
     }

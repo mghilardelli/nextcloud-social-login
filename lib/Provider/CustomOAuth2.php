@@ -84,12 +84,12 @@ class CustomOAuth2 extends OAuth2
         }
 
         if (empty($groups)) {
-            logger('sociallogin')->error('Login denied; user: ' . $data->get('id'));
+            logger('sociallogin')->debug('Login denied; user: ' . $data->get('id'));
             throw new AuthorizationDeniedException('Zugriff nicht erlaubt! Bei Problemen melde dich bei webmaster@pfadi.org');
         }
         $groups[] = $this->config->get('kantonalverband_id');
         // testing
-        logger('sociallogin')->error('Login user: ' . $data->get('id') . '; groups: '. json_encode($groups));
+        logger('sociallogin')->debug('Login user: ' . $data->get('id') . '; groups: '. json_encode($groups));
         return $groups;
     }
 
